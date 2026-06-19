@@ -20,7 +20,7 @@ return [
     'api-key' =>
     env(
         'REMOTE_MODELS_API_KEY',
-        'mTDsdFBdzibUC2o1Se5XCJyiTksbO6sr'
+        'your-api-key-here'
     ),
 
 ];
