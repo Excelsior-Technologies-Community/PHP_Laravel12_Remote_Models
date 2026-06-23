@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-
+use App\Models\SyncHistory;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,18 +20,17 @@ trait HasRemoteData
 
         $response = Http::withHeaders([
 
-            'X-API-KEY'=>config('remote-models.api-key')
+            'X-API-KEY' => config('remote-models.api-key')
 
         ])
-        ->get(
-            config('remote-models.domain')
-            .config('remote-models.api-path')
-        );
+            ->get(
+                config('remote-models.domain')
+                . config('remote-models.api-path')
+            );
 
 
 
-        if($response->failed())
-        {
+        if ($response->failed()) {
             throw new \Exception(
                 'Remote API Error'
             );
@@ -43,13 +42,11 @@ trait HasRemoteData
 
 
 
-        if(!Schema::hasTable('celebrities_cache'))
-        {
+        if (!Schema::hasTable('celebrities_cache')) {
 
             Schema::create(
                 'celebrities_cache',
-                function(Blueprint $table)
-                {
+                function (Blueprint $table) {
 
                     $table->id();
 
@@ -58,10 +55,10 @@ trait HasRemoteData
                     $table->string('name');
 
                     $table->date('birthday')
-                    ->nullable();
+                        ->nullable();
 
                     $table->string('profession')
-                    ->nullable();
+                        ->nullable();
 
                     $table->timestamps();
 
@@ -73,32 +70,38 @@ trait HasRemoteData
 
 
         DB::table('celebrities_cache')
-        ->truncate();
+            ->truncate();
 
 
 
-        foreach($records as $record)
-        {
-
-
+        foreach ($records as $record) {
             DB::table('celebrities_cache')
-            ->insert([
+                ->insert([
 
-                'remote_id'=>$record['id'],
+                    'remote_id' => $record['id'],
 
-                'name'=>$record['name'],
+                    'name' => $record['name'],
 
-                'birthday'=>$record['birthday'] ?? null,
+                    'birthday' => $record['birthday'] ?? null,
 
-                'profession'=>$record['profession'] ?? null,
+                    'profession' => $record['profession'] ?? null,
 
-                'created_at'=>now(),
+                    'created_at' => now(),
 
-                'updated_at'=>now()
+                    'updated_at' => now()
 
-            ]);
-
+                ]);
         }
+
+        SyncHistory::create([
+
+            'records_count' => count($records),
+
+            'synced_at' => now()
+
+        ]);
+
+        return true;
 
 
 
